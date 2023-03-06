@@ -31,3 +31,17 @@ class PostDetail(generics.RetrieveUpdateDestroyAPIView):
             return self.update(request, *args, **kwargs)
         else:
             raise ValidationError(_('Object not found or does not belong to you.'))
+
+
+class CommentList(generics.ListCreateAPIView):
+    serializer_class = serializers.CommentSerializer
+    queryset = models.Comment.objects.all()
+    permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        qs = qs.filter(post=models.Post.objects.get(id=self.kwargs['post_id']))
+        return qs
