@@ -1,6 +1,7 @@
 from django.utils.translation import gettext_lazy as _
-from rest_framework import generics, permissions
+from rest_framework import generics, permissions, mixins, status
 from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 from . import models, serializers
 
 
@@ -58,7 +59,7 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView, UserOwnedObjectRUDMix
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
 
 
-class PostLikeCreate(generics.CreateAPIView):
+class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     serializer_class = serializers.PostLikeSerializer
     permission_classes = (permissions.IsAuthenticated, )
 
@@ -76,3 +77,10 @@ class PostLikeCreate(generics.CreateAPIView):
                 user=self.request.user,
                 post=models.Post.objects.get(id=self.kwargs['post_id']),
             )
+
+    def delete(self, request, *args, **kwargs):
+        if self.get_queryset().exists():
+            self.get_queryset().delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            raise ValidationError(_('You cannot unlike what you don\'t like.'))
