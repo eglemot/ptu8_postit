@@ -56,3 +56,23 @@ class CommentDetail(generics.RetrieveUpdateDestroyAPIView, UserOwnedObjectRUDMix
     serializer_class = serializers.CommentSerializer
     queryset = models.Comment.objects.all()
     permission_classes = (permissions.IsAuthenticatedOrReadOnly, )
+
+
+class PostLikeCreate(generics.CreateAPIView):
+    serializer_class = serializers.PostLikeSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get_queryset(self):
+        return models.PostLike.objects.filter(
+            user=self.request.user,
+            post=models.Post.objects.get(id=self.kwargs['post_id']),
+        )
+
+    def perform_create(self, serializer):
+        if self.get_queryset().exists():
+            raise ValidationError(_('You already like this.'))
+        else:
+            serializer.save(
+                user=self.request.user,
+                post=models.Post.objects.get(id=self.kwargs['post_id']),
+            )
