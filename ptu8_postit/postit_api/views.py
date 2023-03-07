@@ -84,3 +84,30 @@ class PostLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             raise ValidationError(_('You cannot unlike what you don\'t like.'))
+
+
+class CommentLikeCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
+    serializer_class = serializers.CommentLikeSerializer
+    permission_classes = (permissions.IsAuthenticated, )
+
+    def get_queryset(self):
+        return models.CommentLike.objects.filter(
+            user=self.request.user,
+            comment=models.Comment.objects.get(id=self.kwargs['comment_id']),
+        )
+
+    def perform_create(self, serializer):
+        if self.get_queryset().exists():
+            raise ValidationError(_('You already like this.'))
+        else:
+            serializer.save(
+                user=self.request.user,
+                comment=models.Comment.objects.get(id=self.kwargs['comment_id']),
+            )
+
+    def delete(self, request, *args, **kwargs):
+        if self.get_queryset().exists():
+            self.get_queryset().delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            raise ValidationError(_('You cannot unlike what you don\'t like.'))
