@@ -30,7 +30,7 @@ class PostSerializer(serializers.ModelSerializer):
         model = models.Post
         fields = (
             'id', 'title', 'body', 'user', 'user_id', 'comment_count', 
-            'like_count', 'created',
+            'like_count', 'created', 'image',
         )
 
 

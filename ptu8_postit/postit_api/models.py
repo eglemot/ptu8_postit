@@ -10,6 +10,7 @@ class Post(models.Model):
     body = models.CharField(max_length=2000)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="posts")
     created = models.DateTimeField(auto_now_add=True, db_index=True)
+    image = models.ImageField(upload_to='postit_api/images', blank=True, null=True)
 
     class Meta:
         ordering = ['-created']
