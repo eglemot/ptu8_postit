@@ -9,10 +9,18 @@ from . import models, serializers
 User = get_user_model()
 
 
-class UserCreate(generics.CreateAPIView):
+class UserCreate(generics.CreateAPIView, mixins.DestroyModelMixin):
     queryset = User.objects.all()
     serializer_class = serializers.UserSerializer
     permission_classes = (permissions.AllowAny, )
+
+    def delete(self, request, *args, **kwargs):
+        user = User.objects.filter(pk=self.request.user.pk)
+        if user.exists():
+            user.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            raise ValidationError('User does not exist.')
 
 
 class UserOwnedObjectRUDMixin():
